@@ -10,6 +10,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+
+file(GLOB SRC_FILES src/*.cpp src/*.h)
+
 # ---- Proxygen / Folly / Wangle ----
 find_package(folly    REQUIRED CONFIG)
 find_package(Wangle   REQUIRED CONFIG)
@@ -17,8 +20,8 @@ find_package(Proxygen REQUIRED CONFIG)
 
 # ---- App target ----
 add_executable(x402proxy
-        src/main.cpp
-        src/X402Handler.cpp
+        main.cpp
+        ${SRC_FILES}
 )
 target_include_directories(x402proxy PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(x402proxy
@@ -43,13 +46,10 @@ if(BUILD_TESTING)
     find_package(Boost REQUIRED CONFIG COMPONENTS unit_test_framework)
     find_package(CURL  REQUIRED)
 
+
     add_executable(x402_boost_test
             tests/X402HandlerBoostTest.cpp
-            src/X402HandlerFactory.h
-            src/ServerFactory.cpp
-            src/ServerFactory.h
-            src/X402Handler.cpp
-            src/X402Handler.h
+            ${SRC_FILES}
     )
     target_compile_features(x402_boost_test PRIVATE cxx_std_17)
     target_include_directories(x402_boost_test

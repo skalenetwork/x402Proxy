@@ -70,9 +70,8 @@ HttpResponse httpGet(const std::string& url,
 struct X402ServerFixture {
   X402ServerFixture() {
     int argc = 0; char** argv = nullptr;
-    folly::init(&argc, &argv);
 
-    server_ = ServerFactory().createAndStartServerInstance("0.0.0.0", 8080);
+    server_ = ServerFactory().createServerInstance("0.0.0.0", 8080);
 
     srvThread_ = std::thread([this] {
       server_->start(); //
