@@ -17,6 +17,7 @@
 
 // ---- libcurl helper ---------------------------------------------------------
 #include <curl/curl.h>
+#include <nlohmann/json.hpp>
 
 const std::string CONNECT_IP = "127.0.0.1";
 
@@ -111,6 +112,24 @@ struct X402ServerFixture {
     uint16_t port_{0};
 };
 
+
+void parseHeadersIntoMap(const std::vector<std::string>& headersVector, std::map<std::string, std::string>& headersMap) {
+    for (const auto& header : headersVector) {
+        auto pos = header.find(':');
+        if (pos != std::string::npos) {
+            std::string key = header.substr(0, pos);
+            std::string value = header.substr(pos + 1);
+            // Trim whitespace
+            key.erase(0, key.find_first_not_of(" \t\r\n"));
+            key.erase(key.find_last_not_of(" \t\r\n") + 1);
+            value.erase(0, value.find_first_not_of(" \t\r\n"));
+            value.erase(value.find_last_not_of(" \t\r\n") + 1);
+            headersMap[key] = value;
+        }
+    }
+}
+
+
 // Use the fixture for all tests in this suite
 BOOST_FIXTURE_TEST_SUITE(X402Suite, X402ServerFixture)
 
@@ -118,21 +137,26 @@ BOOST_FIXTURE_TEST_SUITE(X402Suite, X402ServerFixture)
         const auto url = baseUrl();
         auto resp = httpGet(url, "paid");
 
+        std::cerr << resp.body << std::endl;
+
+
         BOOST_TEST(resp.status == 402);
+
+        auto headersVector = resp.headers;
+
+        std::map<std::string, std::string> headersMap;
+
+        parseHeadersIntoMap(headersVector, headersMap);
+
+        BOOST_TEST(headersMap["Content-Type"] == "application/json");
+
+
+        auto bodyJson = nlohmann::json::parse(resp.body, nullptr, true);
+
 
         // Basic body sanity checks
         BOOST_TEST(resp.body.find("\"scheme\":\"exact\"") != std::string::npos);
         BOOST_TEST(resp.body.find("\"asset\":{\"symbol\":\"USDC\"") != std::string::npos);
-
-        // Check JSON content-type
-        bool sawJson = false;
-        for (auto &h: resp.headers) {
-            if (h.rfind("Content-Type:", 0) == 0 && h.find("application/json") != std::string::npos) {
-                sawJson = true;
-                break;
-            }
-        }
-        BOOST_TEST(sawJson);
     }
 
     BOOST_AUTO_TEST_CASE(Returns200WhenPaymentHeaderPresent) {

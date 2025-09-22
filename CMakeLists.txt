@@ -66,6 +66,7 @@ if(BUILD_TESTING)
             wangle::wangle
             Folly::folly
             Boost::unit_test_framework
+            Boost::boost
     )
 
     if(ENABLE_ASAN)
