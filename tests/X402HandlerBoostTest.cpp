@@ -19,6 +19,10 @@
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
 
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
+
 const std::string CONNECT_IP = "127.0.0.1";
 
 namespace {

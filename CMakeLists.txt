@@ -43,7 +43,7 @@ include(CTest)
 if(BUILD_TESTING)
     enable_testing()
 
-    find_package(Boost REQUIRED CONFIG COMPONENTS unit_test_framework)
+    find_package(Boost REQUIRED CONFIG COMPONENTS unit_test_framework system thread)
     find_package(CURL  REQUIRED)
 
 
@@ -67,6 +67,9 @@ if(BUILD_TESTING)
             Folly::folly
             Boost::unit_test_framework
             Boost::boost
+            Boost::system
+            Boost::thread
+            Boost::headers
     )
 
     if(ENABLE_ASAN)
