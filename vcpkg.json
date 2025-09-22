@@ -4,6 +4,8 @@
   "dependencies": [
     "folly",
     "wangle",
-    "proxygen"
+    "proxygen",
+    "boost-test",
+    "curl"
   ]
 }

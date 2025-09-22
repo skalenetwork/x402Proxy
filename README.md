@@ -11,3 +11,10 @@ cd vcpkg
 ```
 ./vcpkg install folly wangle proxygen
 ```
+
+
+Run
+
+```
+cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=external/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_FEATURE_FLAGS=manifests 
+```

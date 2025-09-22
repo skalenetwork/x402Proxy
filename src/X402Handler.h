@@ -14,7 +14,7 @@ public:
     void onError(proxygen::ProxygenError) noexcept override { delete this; }
 
 private:
-    bool hasValidPaymentHeader(const proxygen::HTTPMessage* req, std::string& paymentInfo);
+    static bool hasValidPaymentHeader(const proxygen::HTTPMessage* req, std::string& paymentInfo);
     void reply402();
 
     std::unique_ptr<proxygen::HTTPMessage> reqHeaders_;

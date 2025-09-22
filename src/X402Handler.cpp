@@ -39,7 +39,7 @@ void X402Handler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
 bool X402Handler::hasValidPaymentHeader(const HTTPMessage* req, std::string& paymentInfo) {
   // TODO: Parse and verify real X-PAYMENT header.
   // This stub accepts "demo-ok".
-  const auto* headerTable = req->getHeaders();
+  auto* headerTable = req->getHeaders();
   if (!headerTable) return false;
 
   std::string payment = headerTable->getSingle("X-PAYMENT");
