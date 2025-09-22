@@ -22,24 +22,33 @@ public:
     }
 };
 
-int main(int argc, char* argv[]) {
-    folly::Init init(&argc, &argv);
-
+auto  createAndStartServerInstance(std::string bindIP, uint64_t bindPort) {
     HTTPServer::IPConfig ipConfig(
-        folly::SocketAddress("0.0.0.0", 8080, true), HTTPServer::Protocol::HTTP);
+        folly::SocketAddress(bindIP, bindPort, true), HTTPServer::Protocol::HTTP);
 
     HTTPServerOptions options;
     options.threads = static_cast<size_t>(std::thread::hardware_concurrency());
     options.idleTimeout = std::chrono::milliseconds(60000);
     options.shutdownOn = {SIGINT, SIGTERM};
     options.handlerFactories = RequestHandlerChain()
-        .addThen<X402HandlerFactory>()
-        .build();
+            .addThen<X402HandlerFactory>()
+            .build();
 
-    HTTPServer server(std::move(options));
-    server.bind({ipConfig});
+    auto server = std::make_shared<HTTPServer>(std::move(options));
+    server->bind({ipConfig});
+    server->start(); // Blocks until shutdown signal (CTRL-C)
+    return server;
+}
 
-    server.start();
-    server.join();
+int main(int argc, char* argv[]) {
+    folly::Init init(&argc, &argv);
+
+    std::string bindIP = "0.0.0.0";
+    uint64_t bindPort = 8080;
+
+    auto serverObject = createAndStartServerInstance(bindIP, bindPort);
+
+    serverObject->start();
+
     return 0;
 }

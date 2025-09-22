@@ -12,7 +12,7 @@
 #include <folly/SocketAddress.h>
 #include <proxygen/httpserver/HTTPServer.h>
 
-#include "X402HandlerFactory.h"
+#include "ServerFactory.h"
 
 // ---- libcurl helper ---------------------------------------------------------
 #include <curl/curl.h>
@@ -72,27 +72,10 @@ struct X402ServerFixture {
     int argc = 0; char** argv = nullptr;
     folly::init(&argc, &argv);
 
-    proxygen::HTTPServer::IPConfig ipConfig(
-        folly::SocketAddress("127.0.0.1", 0, /*allowNameLookup*/ true),
-        proxygen::HTTPServer::Protocol::HTTP);
-
-    proxygen::HTTPServerOptions options;
-    options.threads = static_cast<size_t>(1);
-    options.idleTimeout = std::chrono::milliseconds(60000);
-    options.shutdownOn = {SIGINT, SIGTERM};
-    options.enableContentCompression = false;
-
-    options.handlerFactories =
-        proxygen::RequestHandlerChain()
-            .addThen<X402HandlerFactory>()
-            .build();
-
-    server_ = std::make_unique<proxygen::HTTPServer>(std::move(options));
-    server_->bind({ipConfig});
-    port_ = server_->getAddresses()[0].address.getPort();
+    server_ = ServerFactory().createAndStartServerInstance("0.0.0.0", 8080);
 
     srvThread_ = std::thread([this] {
-      server_->start(); // blocks until stop()
+      server_->start(); //
     });
 
     // tiny wait to ensure acceptors are ready (bind happened already)
@@ -105,10 +88,10 @@ struct X402ServerFixture {
   }
 
   std::string baseUrl() const {
-    return "http://127.0.0.1:" + std::to_string(port_);
+    return "http://0.0.0.0/" + std::to_string( 8080);
   }
 
-  std::unique_ptr<proxygen::HTTPServer> server_;
+  std::shared_ptr<proxygen::HTTPServer> server_;
   std::thread srvThread_;
   uint16_t port_{0};
 };

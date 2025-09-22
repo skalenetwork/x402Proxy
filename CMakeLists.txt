@@ -46,6 +46,8 @@ if(BUILD_TESTING)
     add_executable(x402_boost_test
             tests/X402HandlerBoostTest.cpp
             src/X402HandlerFactory.h
+            src/ServerFactory.cpp
+            src/ServerFactory.h
             src/X402Handler.cpp
             src/X402Handler.h
     )

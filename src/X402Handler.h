@@ -13,6 +13,10 @@ public:
     void requestComplete() noexcept override { delete this; }
     void onError(proxygen::ProxygenError) noexcept override { delete this; }
 
+    void onUpgrade(proxygen::UpgradeProtocol prot) noexcept override {
+        // No upgrade handling needed for now
+    }
+
 private:
     static bool hasValidPaymentHeader(const proxygen::HTTPMessage* req, std::string& paymentInfo);
     void reply402();
