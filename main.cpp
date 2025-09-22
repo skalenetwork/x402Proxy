@@ -27,7 +27,11 @@ public:
 
 
 int main(int argc, char* argv[]) {
+
+    FLAGS_logtostderr = 1;              // send logs to stderr (console)
+    FLAGS_minloglevel = google::GLOG_INFO;
     folly::Init init(&argc, &argv);
+
     std::string bindIP = "0.0.0.0";
     uint64_t bindPort = 8080;
 
@@ -35,5 +39,6 @@ int main(int argc, char* argv[]) {
 
     serverObject->start();
 
+    google::ShutdownGoogleLogging();
     return 0;
 }

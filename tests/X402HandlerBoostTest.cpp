@@ -71,6 +71,9 @@ struct X402ServerFixture {
   X402ServerFixture() {
     int argc = 0; char** argv = nullptr;
 
+    FLAGS_logtostderr = 1;
+    folly::init(&argc, &argv);
+
     server_ = ServerFactory().createServerInstance("0.0.0.0", 8080);
 
     srvThread_ = std::thread([this] {
