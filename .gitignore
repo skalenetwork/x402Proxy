@@ -1,2 +1,3 @@
 /external/
 /vcpkg_installed/
+/.cmake/
