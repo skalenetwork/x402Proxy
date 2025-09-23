@@ -21,6 +21,8 @@ private:
     static bool hasValidPaymentHeader(const proxygen::HTTPMessage* req, std::string& paymentInfo);
     void reply402();
 
+    void proxyToBackEnd(std::string settlementInfo);
+
     std::unique_ptr<proxygen::HTTPMessage> reqHeaders_;
     std::string bodyBuffer_;
 };

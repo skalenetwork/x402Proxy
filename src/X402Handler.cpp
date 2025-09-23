@@ -60,64 +60,72 @@ void X402Handler::reply402() {
 }
 
 
-void X402Handler::onEOM() noexcept {
-    std::string settlementInfo;
-    if (hasValidPaymentHeader(reqHeaders_.get(), settlementInfo)) {
-        thread_local CURL *curl = nullptr;
-        if (!curl) {
-            curl = curl_easy_init();
-            if (!curl) {
-                LOG(ERROR) << "Could not initialize CURL object";
-                ResponseBuilder(downstream_)
-                        .status(502, "Bad Gateway")
-                        .header("Content-Type", "text/plain")
-                        .body("Could not initialize CURL object")
-                        .sendWithEOM();
-                return;
-            }
-        }
-        // Fetch content from the external URL
-        curl_easy_reset(curl);
+void X402Handler::proxyToBackEnd(std::string settlementInfo) {
+    static thread_local std::unique_ptr<CURL, decltype(&curl_easy_cleanup)> curlThreadLocal(nullptr, &curl_easy_cleanup);
 
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-
-        std::string proxyBody;
-
-        curl_easy_setopt(curl, CURLOPT_URL, "https://jsonplaceholder.typicode.com/posts/1");
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
-                         +[](char* ptr, size_t size, size_t nmemb, void* userdata) -> size_t {
-                         auto* str = static_cast<std::string*>(userdata);
-                         str->append(ptr, size * nmemb);
-                         return size * nmemb;
-                         });
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &proxyBody);
-
-        auto result = curl_easy_perform(curl);
-
-        if (result != CURLE_OK) {
-            LOG(ERROR) << "CURL error: " << curl_easy_strerror(result);
-            // Failed to fetch content, reply with 502
+    if (!curlThreadLocal) {
+        auto curlObject = curl_easy_init();
+        if (!curlObject) {
+            LOG(ERROR) << "Could not initialize CURL object";
             ResponseBuilder(downstream_)
                     .status(502, "Bad Gateway")
                     .header("Content-Type", "text/plain")
-                    .body("Failed to fetch content from upstream service.")
+                    .body("Could not initialize CURL object")
                     .sendWithEOM();
-            curl_easy_cleanup(curl);
             return;
         }
+        curlThreadLocal.reset(curlObject);
+    }
+    // Fetch content from the external URL
+    CHECK_STATE(curlThreadLocal);
+    auto* curl = curlThreadLocal.get();
+    curl_easy_reset(curl);
 
-        curl_easy_cleanup(curl);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
+    std::string proxyBody;
+
+    curl_easy_setopt(curl, CURLOPT_URL, "https://jsonplaceholder.typicode.com/posts/1");
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
+                     +[](char* ptr, size_t size, size_t nmemb, void* userdata) -> size_t {
+                     auto* str = static_cast<std::string*>(userdata);
+                     str->append(ptr, size * nmemb);
+                     return size * nmemb;
+                     });
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &proxyBody);
+
+    auto result = curl_easy_perform(curl);
+
+    if (result != CURLE_OK) {
+        LOG(ERROR) << "CURL error: " << curl_easy_strerror(result);
+        // Failed to fetch content, reply with 502
         ResponseBuilder(downstream_)
-                .status(200, "OK")
+                .status(502, "Bad Gateway")
                 .header("Content-Type", "text/plain")
-                .header("X-PAYMENT-RESPONSE", settlementInfo)
-                .body(proxyBody)
+                .body("Failed to fetch content from upstream service.")
                 .sendWithEOM();
+        curl_easy_cleanup(curl);
         return;
     }
-    // Otherwise, tell the client how to pay.
-    reply402();
+
+    curl_easy_cleanup(curl);
+
+    ResponseBuilder(downstream_)
+            .status(200, "OK")
+            .header("Content-Type", "text/plain")
+            .header("X-PAYMENT-RESPONSE", settlementInfo)
+            .body(proxyBody)
+            .sendWithEOM();
+    return;
+}
+
+void X402Handler::onEOM() noexcept {
+    std::string settlementInfo;
+    if (hasValidPaymentHeader(reqHeaders_.get(), settlementInfo)) {
+        proxyToBackEnd(settlementInfo);
+    } else {
+        reply402();
+    }
 }
