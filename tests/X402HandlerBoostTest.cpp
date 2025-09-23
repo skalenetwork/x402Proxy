@@ -11,68 +11,12 @@
 #include <proxygen/httpserver/HTTPServer.h>
 
 #include "ServerFactory.h"
+#include "X402Client.h"
 
 // ---- libcurl helper ---------------------------------------------------------
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
 
-const std::string CONNECT_IP = "127.0.0.1";
-
-namespace {
-    size_t writeBody(char *ptr, size_t size, size_t nmemb, void *userdata) {
-        auto *out = static_cast<std::string *>(userdata);
-        out->append(ptr, size * nmemb);
-        return size * nmemb;
-    }
-
-    size_t writeHeader(char *buffer, size_t size, size_t nitems, void *userdata) {
-        auto *headers = static_cast<std::vector<std::string> *>(userdata);
-        headers->emplace_back(buffer, size * nitems);
-        return size * nitems;
-    }
-
-    struct HttpResponse {
-        long status = 0;
-        std::string body;
-        std::vector<std::string> headers;
-    };
-
-    HttpResponse httpGet(const std::string &_baseURL, const std::string &_location,
-                         const std::vector<std::string> &extraHeaders) {
-        CURL *curl = curl_easy_init();
-        if (!curl) throw std::runtime_error("curl_easy_init failed");
-
-        std::string url = _baseURL + ":" + std::to_string(DEFAULT_TEST_PORT) + "/" + _location;
-
-        struct curl_slist *hdrs = nullptr;
-        for (auto &h: extraHeaders) hdrs = curl_slist_append(hdrs, h.c_str());
-
-        HttpResponse resp;
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 0L);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeBody);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &resp.body);
-        curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, writeHeader);
-        curl_easy_setopt(curl, CURLOPT_HEADERDATA, &resp.headers);
-        if (hdrs)
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, hdrs);
-
-        auto rc = curl_easy_perform(curl);
-        if (rc != CURLE_OK) {
-            if (hdrs) curl_slist_free_all(hdrs);
-            curl_easy_cleanup(curl);
-            throw std::runtime_error(std::string("curl perform error: ") + curl_easy_strerror(rc));
-        }
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &resp.status);
-
-        if (hdrs) curl_slist_free_all(hdrs);
-        curl_easy_cleanup(curl);
-        return resp;
-    }
-} // namespace
 
 // ---- Test fixture that starts/stops the proxygen server ---------------------
 struct X402ServerFixture {
@@ -98,48 +42,6 @@ struct X402ServerFixture {
         if (srvThread_.joinable()) srvThread_.join();
     }
 
-    std::string baseUrl() const {
-        return "http://" + CONNECT_IP;
-    }
-
-    //return status line and parse headers into map
-    std::string parseStatusLineAndHeaders(const std::vector<std::string> &headersVector,
-                                          std::map<std::string, std::string> &headersMap) {
-        std::string statusLine;
-        BOOST_TEST(headersVector.size() > 0); // At least status line must be present
-        if (!headersVector.empty()) {
-            statusLine = headersVector[0];
-            statusLine.erase(statusLine.find_last_not_of(" \t\r\n") + 1);
-        }
-        for (size_t i = 1; i < headersVector.size(); ++i) {
-            auto pos = headersVector[i].find(':');
-            if (pos != std::string::npos) {
-                std::string key = headersVector[i].substr(0, pos);
-                std::string value = headersVector[i].substr(pos + 1);
-                key.erase(0, key.find_first_not_of(" \t\r\n"));
-                key.erase(key.find_last_not_of(" \t\r\n") + 1);
-                value.erase(0, value.find_first_not_of(" \t\r\n"));
-                value.erase(value.find_last_not_of(" \t\r\n") + 1);
-                headersMap[key] = value;
-            }
-        }
-
-        return statusLine;
-    }
-
-    std::tuple<std::map<std::string, std::string>, std::string, HttpResponse>
-    sendRequestAndParseResult(std::string baseUrl, std::string location, const std::vector<std::string> &extraHeaders) {
-        auto resp = httpGet( baseUrl, location, extraHeaders);
-        auto headersVector = resp.headers;
-        std::map<std::string, std::string> headersMap;
-        auto statusLine = parseStatusLineAndHeaders(headersVector, headersMap);
-        LOG(INFO) << "STATUS::" << statusLine;
-        for (const auto &[key, value]: headersMap) {
-            LOG(INFO) << key << ": " << value;
-        }
-        LOG(INFO) << "BODY::" << resp.body;
-        return {headersMap, statusLine, resp};
-    }
 
     std::shared_ptr<proxygen::HTTPServer> server_;
     std::thread srvThread_;
@@ -151,7 +53,8 @@ struct X402ServerFixture {
 BOOST_FIXTURE_TEST_SUITE(X402Suite, X402ServerFixture)
 
     BOOST_AUTO_TEST_CASE(Returns402WhenNoPaymentHeader) {
-        auto [headersMap, statusLine, resp] = sendRequestAndParseResult( baseUrl(), "paid", {});
+        auto [headersMap, statusLine, resp] = X402Client::sendRequestAndParseResult(
+            X402Client::baseUrl(), "paid", {});
 
 
         BOOST_TEST(resp.status == 402);
@@ -172,7 +75,7 @@ BOOST_FIXTURE_TEST_SUITE(X402Suite, X402ServerFixture)
     }
 
     BOOST_AUTO_TEST_CASE(Returns200WhenPaymentHeaderPresent) {
-    auto [headersMap, statusLine, resp] = sendRequestAndParseResult( baseUrl(), "paid",
+    auto [headersMap, statusLine, resp] = X402Client::sendRequestAndParseResult( X402Client::baseUrl(), "paid",
         {"X-PAYMENT: demo-ok"});
         BOOST_TEST(resp.status == 200);
         auto xPaymentTesponse = headersMap.at("X-PAYMENT-RESPONSE");
