@@ -29,12 +29,12 @@ struct X402ServerFixture {
         FLAGS_logtostderr = 1;
         static folly::Init follyInit(&argc, &argv, {});
 
-        server_ = ServerFactory().createServerInstance(CONNECT_IP, DEFAULT_TEST_PORT);
+        server = ServerFactory().createServerInstance(CONNECT_IP, DEFAULT_TEST_PORT);
 
-        client_ = std::make_shared<X402Client>(CONNECT_IP, DEFAULT_TEST_PORT);
+        client = std::make_shared<X402Client>(CONNECT_IP, DEFAULT_TEST_PORT);
 
-        srvThread_ = std::thread([this] {
-            server_->start(); //
+        srvThread = std::thread([this] {
+            server->start(); //
         });
 
         // tiny wait to ensure acceptors are ready (bind happened already)
@@ -42,16 +42,16 @@ struct X402ServerFixture {
     }
 
     ~X402ServerFixture() {
-        if (server_) server_->stop();
-        if (srvThread_.joinable()) srvThread_.join();
+        if (server) server->stop();
+        if (srvThread.joinable()) srvThread.join();
     }
 
 
-    std::shared_ptr<proxygen::HTTPServer> server_;
-    std::shared_ptr<X402Client> client_;
+    std::shared_ptr<proxygen::HTTPServer> server;
+    std::shared_ptr<X402Client> client;
 
-    std::thread srvThread_;
-    uint16_t port_{0};
+    std::thread srvThread;
+    uint16_t port{0};
 };
 
 
@@ -59,7 +59,7 @@ struct X402ServerFixture {
 BOOST_FIXTURE_TEST_SUITE(X402Suite, X402ServerFixture)
 
     BOOST_AUTO_TEST_CASE(Returns402WhenNoPaymentHeader) {
-        auto [headersMap, statusLine, resp] = client_->sendRequestAndParseResult(
+        auto [headersMap, statusLine, resp] = client->sendRequestAndParseResult(
             "paid", {});
 
 
@@ -81,7 +81,7 @@ BOOST_FIXTURE_TEST_SUITE(X402Suite, X402ServerFixture)
     }
 
     BOOST_AUTO_TEST_CASE(Returns200WhenPaymentHeaderPresent) {
-    auto [headersMap, statusLine, resp] = client_->sendRequestAndParseResult(  "paid",
+    auto [headersMap, statusLine, resp] = client->sendRequestAndParseResult(  "paid",
         {"X-PAYMENT: demo-ok"});
         BOOST_TEST(resp.status == 200);
         auto xPaymentTesponse = headersMap.at("X-PAYMENT-RESPONSE");
