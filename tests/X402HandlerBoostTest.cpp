@@ -45,7 +45,7 @@ namespace {
     };
 
     HttpResponse httpGet(const std::string &_baseURL, const std::string &_location,
-                         const std::vector<std::string> &extraHeaders = {}) {
+                         const std::vector<std::string> &extraHeaders) {
         CURL *curl = curl_easy_init();
         if (!curl) throw std::runtime_error("curl_easy_init failed");
 
@@ -132,9 +132,8 @@ struct X402ServerFixture {
     }
 
     std::tuple<std::map<std::string, std::string>, std::string, HttpResponse>
-    sendRequestAndParseResult() {
-        const auto url = baseUrl();
-        auto resp = httpGet(url, "paid");
+    sendRequestAndParseResult(std::string baseUrl, std::string location, const std::vector<std::string> &extraHeaders) {
+        auto resp = httpGet( baseUrl, location, extraHeaders);
         auto headersVector = resp.headers;
         std::map<std::string, std::string> headersMap;
         auto statusLine = parseStatusLineAndHeaders(headersVector, headersMap);
@@ -156,7 +155,7 @@ struct X402ServerFixture {
 BOOST_FIXTURE_TEST_SUITE(X402Suite, X402ServerFixture)
 
     BOOST_AUTO_TEST_CASE(Returns402WhenNoPaymentHeader) {
-        auto [headersMap, statusLine, resp] = sendRequestAndParseResult();
+        auto [headersMap, statusLine, resp] = sendRequestAndParseResult( baseUrl(), "paid", {});
 
 
         BOOST_TEST(resp.status == 402);
@@ -177,8 +176,7 @@ BOOST_FIXTURE_TEST_SUITE(X402Suite, X402ServerFixture)
     }
 
     BOOST_AUTO_TEST_CASE(Returns200WhenPaymentHeaderPresent) {
-        const auto url = baseUrl() + "/paid";
-        auto resp = httpGet(url, {"X-PAYMENT: demo-ok"});
+        auto resp = httpGet(baseUrl(), "paid", {"X-PAYMENT: demo-ok"});
 
         BOOST_TEST(resp.status == 200);
         BOOST_TEST(resp.body.find("\"ok\":true") != std::string::npos);
