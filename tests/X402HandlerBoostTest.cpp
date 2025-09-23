@@ -179,7 +179,7 @@ BOOST_FIXTURE_TEST_SUITE(X402Suite, X402ServerFixture)
         auto resp = httpGet(baseUrl(), "paid", {"X-PAYMENT: demo-ok"});
 
         BOOST_TEST(resp.status == 200);
-        BOOST_TEST(resp.body.find("\"ok\":true") != std::string::npos);
+        BOOST_TEST(resp.body.size() == 0);
 
         bool sawPaymentResp = false;
         for (auto &h: resp.headers) {

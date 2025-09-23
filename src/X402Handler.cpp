@@ -4,6 +4,8 @@
 #include <folly/String.h>
 #include <folly/json.h>
 
+#include <curl/curl.h>
+
 using namespace proxygen;
 
 namespace {
@@ -63,11 +65,26 @@ void X402Handler::reply402() {
 void X402Handler::onEOM() noexcept {
   std::string settlementInfo;
   if (hasValidPaymentHeader(reqHeaders_.get(), settlementInfo)) {
+    // Fetch content from the external URL
+    CURL* curl = curl_easy_init();
+    std::string proxyBody;
+    if (curl) {
+      curl_easy_setopt(curl, CURLOPT_URL, "https://raw.githubusercontent.com/skalenetwork/skaled/refs/heads/develop/dummy.txt");
+      curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, +[](char* ptr, size_t size, size_t nmemb, void* userdata) -> size_t {
+          auto* str = static_cast<std::string*>(userdata);
+          str->append(ptr, size * nmemb);
+          return size * nmemb;
+      });
+      curl_easy_setopt(curl, CURLOPT_WRITEDATA, &proxyBody);
+      curl_easy_perform(curl);
+      curl_easy_cleanup(curl);
+    }
     ResponseBuilder(downstream_)
         .status(200, "OK")
-        .header("Content-Type", "application/json")
+        .header("Content-Type", "text/plain")
         .header("X-PAYMENT-RESPONSE", settlementInfo)
-        .body(R"({"ok":true,"message":"paid content here"})")
+        .body(proxyBody)
         .sendWithEOM();
     return;
   }
