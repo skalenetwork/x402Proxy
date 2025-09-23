@@ -142,6 +142,7 @@ struct X402ServerFixture {
         for (const auto &[key, value]: headersMap) {
             LOG(INFO) << key << ": " << value;
         }
+        LOG(INFO) << "BODY::" << resp.body;
         return {headersMap, statusLine, resp};
     }
 
@@ -151,32 +152,28 @@ struct X402ServerFixture {
 };
 
 
-
-
-
 // Use the fixture for all tests in this suite
 BOOST_FIXTURE_TEST_SUITE(X402Suite, X402ServerFixture)
 
     BOOST_AUTO_TEST_CASE(Returns402WhenNoPaymentHeader) {
-
         auto [headersMap, statusLine, resp] = sendRequestAndParseResult();
 
-        LOG(INFO) << resp.body;
+
         BOOST_TEST(resp.status == 402);
         BOOST_TEST(statusLine == "HTTP/1.1 402 Payment Required");
-
-
-        LOG(INFO) << "Status line: " << statusLine;
-
         BOOST_TEST(headersMap["Content-Type"] == "application/json");
 
+        nlohmann::json bodyJson;
 
-        auto bodyJson = nlohmann::json::parse(resp.body, nullptr, true);
-
+        try {
+            bodyJson = nlohmann::json::parse(resp.body, nullptr, true);
+        } catch (const nlohmann::json::parse_error &e) {
+            BOOST_FAIL("JSON parsing failed: " + std::string(e.what()));
+        }
 
         // Basic body sanity checks
-        BOOST_TEST(resp.body.find("\"scheme\":\"exact\"") != std::string::npos);
-        BOOST_TEST(resp.body.find("\"asset\":{\"symbol\":\"USDC\"") != std::string::npos);
+        BOOST_TEST(bodyJson["scheme"] == "exact");
+        BOOST_TEST(bodyJson["asset"]["symbol"] == "USDC");
     }
 
     BOOST_AUTO_TEST_CASE(Returns200WhenPaymentHeaderPresent) {
