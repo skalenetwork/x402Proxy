@@ -21,7 +21,7 @@ static_assert(exceptions_enabled, "Exceptions must be enabled!");
 #define CHECK_STATE2( _EXPRESSION_, _MSG_ )                                                              \
     if ( !( _EXPRESSION_ ) ) {                                                                           \
         auto __msg__ = std::string( "Check failed::" ) + #_EXPRESSION_ + " " + std::string( __FILE__ ) + \
-                       ":" + to_string( __LINE__ );                                                      \
+                       ":" + std::to_string( __LINE__ );                                                      \
         throw std::logic_error( __msg__ + ": " + _MSG_ + ":" +  __FUNCTION__ );                          \
     }
 
