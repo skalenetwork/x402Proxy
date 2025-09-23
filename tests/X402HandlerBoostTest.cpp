@@ -1,12 +1,9 @@
 // X402HandlerBoostTest.cpp
 #define BOOST_TEST_MODULE X402HandlerSelfTest
+
+#include "../src/common.h"
+
 #include <boost/test/included/unit_test.hpp> // or <boost/test/unit_test.hpp> if using dynamic link
-#include <atomic>
-#include <thread>
-#include <chrono>
-#include <string>
-#include <vector>
-#include <stdexcept>
 
 #include <folly/init/Init.h>
 #include <folly/SocketAddress.h>
@@ -18,7 +15,6 @@
 // ---- libcurl helper ---------------------------------------------------------
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
-
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>

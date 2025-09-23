@@ -17,6 +17,10 @@ file(GLOB SRC_FILES src/*.cpp src/*.h)
 find_package(folly    REQUIRED CONFIG)
 find_package(Wangle   REQUIRED CONFIG)
 find_package(Proxygen REQUIRED CONFIG)
+find_package(Boost REQUIRED CONFIG COMPONENTS unit_test_framework system thread)
+find_package(CURL  REQUIRED)
+
+
 
 # ---- App target ----
 add_executable(x402proxy
@@ -26,6 +30,7 @@ add_executable(x402proxy
 target_include_directories(x402proxy PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(x402proxy
         PRIVATE
+        CURL::libcurl
         proxygen::proxygenhttpserver
         proxygen::proxygen
         wangle::wangle
@@ -42,9 +47,6 @@ endif()
 include(CTest)
 if(BUILD_TESTING)
     enable_testing()
-
-    find_package(Boost REQUIRED CONFIG COMPONENTS unit_test_framework system thread)
-    find_package(CURL  REQUIRED)
 
 
     add_executable(x402_boost_test
@@ -79,3 +81,4 @@ if(BUILD_TESTING)
 
     add_test(NAME x402_boost_test COMMAND x402_boost_test)
 endif()
+

@@ -1,9 +1,6 @@
+#include "common.h"
 #include "X402Handler.h"
-
-#include <folly/Conv.h>
-#include <folly/String.h>
 #include <folly/json.h>
-
 #include <curl/curl.h>
 
 using namespace proxygen;
@@ -69,7 +66,7 @@ void X402Handler::onEOM() noexcept {
     CURL* curl = curl_easy_init();
     std::string proxyBody;
     if (curl) {
-      curl_easy_setopt(curl, CURLOPT_URL, "https://raw.githubusercontent.com/skalenetwork/skaled/refs/heads/develop/dummy.txt");
+      curl_easy_setopt(curl, CURLOPT_URL, "https://worldtimeapi.org/api/timezone/Europe/Lisbon");
       curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, +[](char* ptr, size_t size, size_t nmemb, void* userdata) -> size_t {
           auto* str = static_cast<std::string*>(userdata);
@@ -77,7 +74,8 @@ void X402Handler::onEOM() noexcept {
           return size * nmemb;
       });
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, &proxyBody);
-      curl_easy_perform(curl);
+      CHECK_STATE(curl_easy_perform(curl) == CURLE_OK);
+
       curl_easy_cleanup(curl);
     }
     ResponseBuilder(downstream_)

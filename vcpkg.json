@@ -8,6 +8,7 @@
     "boost-test",
     "curl",
     "nlohmann-json",
-    "boost-beast"
+    "boost-beast",
+    "gsl-lite"
   ]
 }
