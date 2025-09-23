@@ -18,6 +18,8 @@
 #include <nlohmann/json.hpp>
 
 
+const std::string CONNECT_IP = "127.0.0.1";
+
 // ---- Test fixture that starts/stops the proxygen server ---------------------
 struct X402ServerFixture {
     X402ServerFixture() {
@@ -27,7 +29,9 @@ struct X402ServerFixture {
         FLAGS_logtostderr = 1;
         static folly::Init follyInit(&argc, &argv, {});
 
-        server_ = ServerFactory().createServerInstance("127.0.0.1", DEFAULT_TEST_PORT);
+        server_ = ServerFactory().createServerInstance(CONNECT_IP, DEFAULT_TEST_PORT);
+
+        client_ = std::make_shared<X402Client>(CONNECT_IP, DEFAULT_TEST_PORT);
 
         srvThread_ = std::thread([this] {
             server_->start(); //
@@ -44,6 +48,8 @@ struct X402ServerFixture {
 
 
     std::shared_ptr<proxygen::HTTPServer> server_;
+    std::shared_ptr<X402Client> client_;
+
     std::thread srvThread_;
     uint16_t port_{0};
 };
@@ -53,8 +59,8 @@ struct X402ServerFixture {
 BOOST_FIXTURE_TEST_SUITE(X402Suite, X402ServerFixture)
 
     BOOST_AUTO_TEST_CASE(Returns402WhenNoPaymentHeader) {
-        auto [headersMap, statusLine, resp] = X402Client::sendRequestAndParseResult(
-            X402Client::baseUrl(), "paid", {});
+        auto [headersMap, statusLine, resp] = client_->sendRequestAndParseResult(
+            "paid", {});
 
 
         BOOST_TEST(resp.status == 402);
@@ -75,7 +81,7 @@ BOOST_FIXTURE_TEST_SUITE(X402Suite, X402ServerFixture)
     }
 
     BOOST_AUTO_TEST_CASE(Returns200WhenPaymentHeaderPresent) {
-    auto [headersMap, statusLine, resp] = X402Client::sendRequestAndParseResult( X402Client::baseUrl(), "paid",
+    auto [headersMap, statusLine, resp] = client_->sendRequestAndParseResult(  "paid",
         {"X-PAYMENT: demo-ok"});
         BOOST_TEST(resp.status == 200);
         auto xPaymentTesponse = headersMap.at("X-PAYMENT-RESPONSE");

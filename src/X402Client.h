@@ -19,7 +19,6 @@
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
 
-const std::string CONNECT_IP = "127.0.0.1";
 
 struct HttpResponse {
     long status = 0;
@@ -30,14 +29,22 @@ struct HttpResponse {
 
 // ---- Test fixture that starts/stops the proxygen server ---------------------
 struct X402Client {
-    X402Client() {
+private:
+    std::string connectIp;
+    uint16_t port;
+
+
+public:
+    X402Client(const std::string &connect_ip, uint16_t port)
+        : connectIp(connect_ip),
+          port(port) {
     }
 
     ~X402Client() {
     }
 
-     static std::string baseUrl()  {
-        return "http://" + CONNECT_IP;
+    std::string baseUrl()  {
+        return "http://" + connectIp;
     }
 
     //return status line and parse headers into map
@@ -65,9 +72,9 @@ struct X402Client {
         return statusLine;
     }
 
-    static std::tuple<std::map<std::string, std::string>, std::string, HttpResponse>
-    sendRequestAndParseResult(std::string baseUrl, std::string location, const std::vector<std::string> &extraHeaders) {
-        auto resp = httpGet( baseUrl, location, extraHeaders);
+    std::tuple<std::map<std::string, std::string>, std::string, HttpResponse>
+    sendRequestAndParseResult(std::string location, const std::vector<std::string> &extraHeaders) {
+        auto resp = httpGet( baseUrl(), location, extraHeaders);
         auto headersVector = resp.headers;
         std::map<std::string, std::string> headersMap;
         auto statusLine = parseStatusLineAndHeaders(headersVector, headersMap);
@@ -92,12 +99,12 @@ struct X402Client {
         return size * nitems;
     }
 
-    static HttpResponse httpGet(const std::string &_baseURL, const std::string &_location,
+    HttpResponse httpGet(const std::string &_baseURL, const std::string &_location,
                          const std::vector<std::string> &extraHeaders) {
         CURL *curl = curl_easy_init();
         if (!curl) throw std::runtime_error("curl_easy_init failed");
 
-        std::string url = _baseURL + ":" + std::to_string(DEFAULT_TEST_PORT) + "/" + _location;
+        std::string url = _baseURL + ":" + std::to_string(port) + "/" + _location;
 
         struct curl_slist *hdrs = nullptr;
         for (auto &h: extraHeaders) hdrs = curl_slist_append(hdrs, h.c_str());
