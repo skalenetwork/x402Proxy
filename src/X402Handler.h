@@ -24,5 +24,6 @@ private:
     void proxyToBackEnd(std::string _settlementInfo);
 
     std::unique_ptr<proxygen::HTTPMessage> reqHeaders;
+    std::string reqURL;
     std::string bodyBuffer;
 };

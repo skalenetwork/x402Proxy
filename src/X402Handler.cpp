@@ -25,8 +25,43 @@ namespace {
     }
 }
 
+
 void X402Handler::onRequest(std::unique_ptr<HTTPMessage> _headers) noexcept {
     reqHeaders = std::move(_headers);
+    auto path = reqHeaders->getPath();
+
+    // Check for insecure path patterns
+
+    // Reject empty or non-rooted paths
+    if (path.empty() || path.front() != '/') {
+        ResponseBuilder(downstream_)
+            .status(400, "Bad Request")
+            .body("Invalid or insecure path")
+            .sendWithEOM();
+        return;
+    }
+
+    // Allow only [A-Za-z0-9] and '/'
+    bool badChar = std::any_of(path.begin(), path.end(), [](unsigned char c) {
+        return !(std::isalnum(c) || c == '/');
+    });
+
+    if (badChar) {
+        ResponseBuilder(downstream_)
+            .status(400, "Bad Request")
+            .body("Path contains invalid characters")
+            .sendWithEOM();
+        return;
+    }
+
+    // Optionally: reject traversal attempts
+    if (path.find("..") != std::string::npos) {
+        ResponseBuilder(downstream_)
+            .status(400, "Bad Request")
+            .body("Path traversal not allowed")
+            .sendWithEOM();
+        return;
+    }
 }
 
 void X402Handler::onBody(std::unique_ptr<folly::IOBuf> _body) noexcept {
