@@ -85,7 +85,7 @@ void X402Handler::onEOM() noexcept {
 
         std::string proxyBody;
 
-        curl_easy_setopt(curl, CURLOPT_URL, "https://worldtimeapi.org/api/timezone/Europe/Lisbon");
+        curl_easy_setopt(curl, CURLOPT_URL, "https://jsonplaceholder.typicode.com/posts/1");
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
                          +[](char* ptr, size_t size, size_t nmemb, void* userdata) -> size_t {
                          auto* str = static_cast<std::string*>(userdata);
