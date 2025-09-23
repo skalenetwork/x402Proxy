@@ -18,7 +18,10 @@
 #include <nlohmann/json.hpp>
 
 
-const std::string CONNECT_IP = "127.0.0.1";
+const std::string BIND_IP = "0.0.0.0";
+const std::string CONNECT_HOST = "localhost";
+constexpr uint32_t DEFAULT_TEST_PORT = 8080;
+
 
 // ---- Test fixture that starts/stops the proxygen server ---------------------
 struct X402ServerFixture {
@@ -29,9 +32,9 @@ struct X402ServerFixture {
         FLAGS_logtostderr = 1;
         static folly::Init follyInit(&argc, &argv, {});
 
-        server = ServerFactory().createServerInstance(CONNECT_IP, DEFAULT_TEST_PORT);
+        server = ServerFactory().createServerInstance(BIND_IP, DEFAULT_TEST_PORT);
 
-        client = std::make_shared<X402Client>(CONNECT_IP, DEFAULT_TEST_PORT);
+        client = std::make_shared<X402Client>(CONNECT_HOST, DEFAULT_TEST_PORT);
 
         srvThread = std::thread([this] {
             server->start(); //
