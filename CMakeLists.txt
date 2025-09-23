@@ -50,7 +50,7 @@ if(BUILD_TESTING)
 
 
     add_executable(x402_boost_test
-            tests/X402HandlerBoostTest.cpp
+            src/tests/X402Test.cpp
             ${SRC_FILES}
     )
     target_compile_features(x402_boost_test PRIVATE cxx_std_17)

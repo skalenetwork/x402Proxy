@@ -1,7 +1,7 @@
 // X402HandlerBoostTest.cpp
 #define BOOST_TEST_MODULE X402HandlerSelfTest
 
-#include "../src/common.h"
+#include "common.h"
 
 #include <boost/test/included/unit_test.hpp> // or <boost/test/unit_test.hpp> if using dynamic link
 

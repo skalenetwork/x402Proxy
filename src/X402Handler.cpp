@@ -25,26 +25,26 @@ namespace {
     }
 }
 
-void X402Handler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
-    reqHeaders = std::move(headers);
+void X402Handler::onRequest(std::unique_ptr<HTTPMessage> _headers) noexcept {
+    reqHeaders = std::move(_headers);
 }
 
-void X402Handler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
-    if (!body) return;
-    body->coalesce();
-    bodyBuffer.append(reinterpret_cast<const char *>(body->data()), body->length());
+void X402Handler::onBody(std::unique_ptr<folly::IOBuf> _body) noexcept {
+    if (!_body) return;
+    _body->coalesce();
+    bodyBuffer.append(reinterpret_cast<const char *>(_body->data()), _body->length());
 }
 
-bool X402Handler::hasValidPaymentHeader(const HTTPMessage *req, std::string &paymentInfo) {
+bool X402Handler::hasValidPaymentHeader(const HTTPMessage* _req, std::string& _paymentInfo) {
     // TODO: Parse and verify real X-PAYMENT header.
     // This stub accepts "demo-ok".
-    const auto &headerTable = req->getHeaders();
+    const auto& headerTable = _req->getHeaders();
 
     std::string payment = headerTable.getSingleOrEmpty("X-PAYMENT");
     if (payment.empty()) return false;
 
     if (payment == "demo-ok") {
-        paymentInfo = R"({"txHash":"0xabc123...","amount":"0.25","asset":"USDC","network":"base-mainnet"})";
+        _paymentInfo = R"({"txHash":"0xabc123...","amount":"0.25","asset":"USDC","network":"base-mainnet"})";
         return true;
     }
     return false;
@@ -60,7 +60,7 @@ void X402Handler::reply402() {
 }
 
 
-void X402Handler::proxyToBackEnd(std::string settlementInfo) {
+void X402Handler::proxyToBackEnd(std::string _settlementInfo) {
     static thread_local std::unique_ptr<CURL, decltype(&curl_easy_cleanup)> curlThreadLocal(nullptr, &curl_easy_cleanup);
 
     if (!curlThreadLocal) {
@@ -89,10 +89,10 @@ void X402Handler::proxyToBackEnd(std::string settlementInfo) {
 
     curl_easy_setopt(curl, CURLOPT_URL, "https://jsonplaceholder.typicode.com/posts/1");
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
-                     +[](char* ptr, size_t size, size_t nmemb, void* userdata) -> size_t {
-                     auto* str = static_cast<std::string*>(userdata);
-                     str->append(ptr, size * nmemb);
-                     return size * nmemb;
+                     +[](char* _ptr, size_t _size, size_t _nmemb, void* _userdata) -> size_t {
+                     auto* str = static_cast<std::string*>(_userdata);
+                     str->append(_ptr, _size * _nmemb);
+                     return _size * _nmemb;
                      });
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &proxyBody);
 
@@ -115,7 +115,7 @@ void X402Handler::proxyToBackEnd(std::string settlementInfo) {
     ResponseBuilder(downstream_)
             .status(200, "OK")
             .header("Content-Type", "text/plain")
-            .header("X-PAYMENT-RESPONSE", settlementInfo)
+            .header("X-PAYMENT-RESPONSE", _settlementInfo)
             .body(proxyBody)
             .sendWithEOM();
     return;

@@ -6,11 +6,11 @@
 
 class X402HandlerFactory : public proxygen::RequestHandlerFactory {
 public:
-    void onServerStart(folly::EventBase*) noexcept override {}
+    void onServerStart(folly::EventBase* /*_evb*/) noexcept override {}
     void onServerStop() noexcept override {}
 
-    proxygen::RequestHandler* onRequest(proxygen::RequestHandler*,
-                                        proxygen::HTTPMessage*) noexcept override {
+    proxygen::RequestHandler* onRequest(proxygen::RequestHandler* /*_handler*/,
+                                        proxygen::HTTPMessage* /*_msg*/) noexcept override {
         return new X402Handler();
     }
 };
