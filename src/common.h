@@ -1,5 +1,14 @@
 #pragma once
 
+#include <cassert>
+
+#if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
+    constexpr bool exceptions_enabled = true;
+#else
+constexpr bool exceptions_enabled = false;
+#endif
+
+static_assert(exceptions_enabled, "Exceptions must be enabled!");
 
 #define CHECK_STATE( _EXPRESSION_ )                                                        \
     if ( !( _EXPRESSION_ ) ) {                                                             \
@@ -15,6 +24,7 @@
                        ":" + to_string( __LINE__ );                                                      \
         throw std::logic_error( __msg__ + ": " + _MSG_ + ":" +  __FUNCTION__ );                          \
     }
+
 
 
 #include <glog/logging.h>

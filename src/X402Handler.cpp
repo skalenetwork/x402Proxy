@@ -59,22 +59,46 @@ void X402Handler::reply402() {
       .sendWithEOM();
 }
 
+
+
+
 void X402Handler::onEOM() noexcept {
   std::string settlementInfo;
   if (hasValidPaymentHeader(reqHeaders_.get(), settlementInfo)) {
+    thread_local CURL* curl = nullptr;
+    if (!curl) {
+      curl = curl_easy_init();
+      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+      curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+      CHECK_STATE(curl != nullptr);
+    }
     // Fetch content from the external URL
-    CURL* curl = curl_easy_init();
+    curl_easy_reset(curl);
     std::string proxyBody;
     if (curl) {
+
       curl_easy_setopt(curl, CURLOPT_URL, "https://worldtimeapi.org/api/timezone/Europe/Lisbon");
-      curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, +[](char* ptr, size_t size, size_t nmemb, void* userdata) -> size_t {
           auto* str = static_cast<std::string*>(userdata);
           str->append(ptr, size * nmemb);
           return size * nmemb;
       });
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, &proxyBody);
-      CHECK_STATE(curl_easy_perform(curl) == CURLE_OK);
+
+      auto result = curl_easy_perform(curl);
+
+      if (result != CURLE_OK) {
+        LOG(ERROR) << "CURL error: " << curl_easy_strerror(result);
+        // Failed to fetch content, reply with 502
+        ResponseBuilder(downstream_)
+            .status(502, "Bad Gateway")
+            .header("Content-Type", "text/plain")
+            .body("Failed to fetch content from upstream service.")
+            .sendWithEOM();
+        curl_easy_cleanup(curl);
+        return;
+      }
 
       curl_easy_cleanup(curl);
     }

@@ -174,12 +174,10 @@ BOOST_FIXTURE_TEST_SUITE(X402Suite, X402ServerFixture)
     BOOST_AUTO_TEST_CASE(Returns200WhenPaymentHeaderPresent) {
     auto [headersMap, statusLine, resp] = sendRequestAndParseResult( baseUrl(), "paid",
         {"X-PAYMENT: demo-ok"});
-
-
         BOOST_TEST(resp.status == 200);
         auto xPaymentTesponse = headersMap.at("X-PAYMENT-RESPONSE");
         BOOST_TEST(xPaymentTesponse.find("txHash") != std::string::npos);
-        BOOST_TEST(resp.body.size() == 0);
+        BOOST_TEST(resp.body.size() > 0);
     }
 
 BOOST_AUTO_TEST_SUITE_END()
