@@ -14,5 +14,5 @@ constexpr uint32_t DEFAULT_TEST_PORT = 8080;
 class ServerFactory {
 public:
     static std::shared_ptr<proxygen::HTTPServer> createServerInstance(
-        std::string bindIP, uint64_t bindPort);
+        std::string _bindIP, uint64_t _bindPort);
 };

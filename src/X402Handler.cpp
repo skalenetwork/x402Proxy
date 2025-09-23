@@ -26,13 +26,13 @@ namespace {
 }
 
 void X402Handler::onRequest(std::unique_ptr<HTTPMessage> headers) noexcept {
-    reqHeaders_ = std::move(headers);
+    reqHeaders = std::move(headers);
 }
 
 void X402Handler::onBody(std::unique_ptr<folly::IOBuf> body) noexcept {
     if (!body) return;
     body->coalesce();
-    bodyBuffer_.append(reinterpret_cast<const char *>(body->data()), body->length());
+    bodyBuffer.append(reinterpret_cast<const char *>(body->data()), body->length());
 }
 
 bool X402Handler::hasValidPaymentHeader(const HTTPMessage *req, std::string &paymentInfo) {
@@ -123,7 +123,7 @@ void X402Handler::proxyToBackEnd(std::string settlementInfo) {
 
 void X402Handler::onEOM() noexcept {
     std::string settlementInfo;
-    if (hasValidPaymentHeader(reqHeaders_.get(), settlementInfo)) {
+    if (hasValidPaymentHeader(reqHeaders.get(), settlementInfo)) {
         proxyToBackEnd(settlementInfo);
     } else {
         reply402();
