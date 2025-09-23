@@ -44,7 +44,7 @@ namespace {
         std::vector<std::string> headers;
     };
 
-    HttpResponse httpGet(const std::string &_baseURL, const std::string & _location,
+    HttpResponse httpGet(const std::string &_baseURL, const std::string &_location,
                          const std::vector<std::string> &extraHeaders = {}) {
         CURL *curl = curl_easy_init();
         if (!curl) throw std::runtime_error("curl_easy_init failed");
@@ -84,9 +84,8 @@ struct X402ServerFixture {
         int argc = 1;
         char *arg_array[] = {const_cast<char *>("X402HandlerBoostTest"), nullptr};
         char **argv = arg_array;
-
         FLAGS_logtostderr = 1;
-        folly::Init follyInit(&argc, &argv, {});
+        static folly::Init follyInit(&argc, &argv, {});
 
         server_ = ServerFactory().createServerInstance("127.0.0.1", DEFAULT_TEST_PORT);
 
@@ -96,10 +95,6 @@ struct X402ServerFixture {
 
         // tiny wait to ensure acceptors are ready (bind happened already)
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-        // Simple HTTP GET using libcurl to check server is up
-        auto resp = httpGet(baseUrl(), "pay");
-        BOOST_TEST(resp.status > 0); // Any valid HTTP response means server is listening
     }
 
     ~X402ServerFixture() {
@@ -108,7 +103,46 @@ struct X402ServerFixture {
     }
 
     std::string baseUrl() const {
-        return "http://"  + CONNECT_IP;
+        return "http://" + CONNECT_IP;
+    }
+
+    //return status line and parse headers into map
+    std::string parseStatusLineAndHeaders(const std::vector<std::string> &headersVector,
+                                          std::map<std::string, std::string> &headersMap) {
+        std::string statusLine;
+        BOOST_TEST(headersVector.size() > 0); // At least status line must be present
+        if (!headersVector.empty()) {
+            statusLine = headersVector[0];
+            statusLine.erase(statusLine.find_last_not_of(" \t\r\n") + 1);
+        }
+        for (size_t i = 1; i < headersVector.size(); ++i) {
+            auto pos = headersVector[i].find(':');
+            if (pos != std::string::npos) {
+                std::string key = headersVector[i].substr(0, pos);
+                std::string value = headersVector[i].substr(pos + 1);
+                key.erase(0, key.find_first_not_of(" \t\r\n"));
+                key.erase(key.find_last_not_of(" \t\r\n") + 1);
+                value.erase(0, value.find_first_not_of(" \t\r\n"));
+                value.erase(value.find_last_not_of(" \t\r\n") + 1);
+                headersMap[key] = value;
+            }
+        }
+
+        return statusLine;
+    }
+
+    std::tuple<std::map<std::string, std::string>, std::string, HttpResponse>
+    sendRequestAndParseResult() {
+        const auto url = baseUrl();
+        auto resp = httpGet(url, "paid");
+        auto headersVector = resp.headers;
+        std::map<std::string, std::string> headersMap;
+        auto statusLine = parseStatusLineAndHeaders(headersVector, headersMap);
+        LOG(INFO) << "STATUS::" << statusLine;
+        for (const auto &[key, value]: headersMap) {
+            LOG(INFO) << key << ": " << value;
+        }
+        return {headersMap, statusLine, resp};
     }
 
     std::shared_ptr<proxygen::HTTPServer> server_;
@@ -117,40 +151,22 @@ struct X402ServerFixture {
 };
 
 
-void parseHeadersIntoMap(const std::vector<std::string>& headersVector, std::map<std::string, std::string>& headersMap) {
-    for (const auto& header : headersVector) {
-        auto pos = header.find(':');
-        if (pos != std::string::npos) {
-            std::string key = header.substr(0, pos);
-            std::string value = header.substr(pos + 1);
-            // Trim whitespace
-            key.erase(0, key.find_first_not_of(" \t\r\n"));
-            key.erase(key.find_last_not_of(" \t\r\n") + 1);
-            value.erase(0, value.find_first_not_of(" \t\r\n"));
-            value.erase(value.find_last_not_of(" \t\r\n") + 1);
-            headersMap[key] = value;
-        }
-    }
-}
+
 
 
 // Use the fixture for all tests in this suite
 BOOST_FIXTURE_TEST_SUITE(X402Suite, X402ServerFixture)
 
     BOOST_AUTO_TEST_CASE(Returns402WhenNoPaymentHeader) {
-        const auto url = baseUrl();
-        auto resp = httpGet(url, "paid");
 
-        std::cerr << resp.body << std::endl;
+        auto [headersMap, statusLine, resp] = sendRequestAndParseResult();
 
-
+        LOG(INFO) << resp.body;
         BOOST_TEST(resp.status == 402);
+        BOOST_TEST(statusLine == "HTTP/1.1 402 Payment Required");
 
-        auto headersVector = resp.headers;
 
-        std::map<std::string, std::string> headersMap;
-
-        parseHeadersIntoMap(headersVector, headersMap);
+        LOG(INFO) << "Status line: " << statusLine;
 
         BOOST_TEST(headersMap["Content-Type"] == "application/json");
 
