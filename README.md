@@ -20,7 +20,7 @@ cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=external/vcpkg/scripts/bui
 ```
 
 ## How x402proxy Reverse Proxy Works
-Imagine you want to visit a website, but instead of talking to the website directly, you send your request to a helper called x402proxy. 
+Imagine you want to visit a website, but instead of talking to the website directly, you send your request to a helper website called x402proxy. 
 This helper stands in the middle between you and the website.
 
 x402proxy charges users for access to web resources using the x402 protocol by Coinbase.
