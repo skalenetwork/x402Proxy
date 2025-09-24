@@ -1,31 +1,23 @@
-# x402proxy
+**Why use x402proxy?**
 
-Install vcpkg
-
-```
-git clone https://github.com/microsoft/vcpkg.git
-cd vcpkg
-./bootstrap-vcpkg.sh
-``` 
-
-```
-./vcpkg install folly wangle proxygen
-```
-
-
-Run
-
-```
-cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=external/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_FEATURE_FLAGS=manifests 
-```
+- It instantly adds x402 payments to existing websites and web APIs.
+- It is fully x402 compliant.
+- It is easy to deploy and configure.
+- It is a high performance C++ based implementation, supporting large number of concurrent connections.
+- It supports both Base and SKALE networks.
+- It supports flexible payment models and x402 options.
+- It provides detailed logging and monitoring.
+- It is open source and free to use.
 
 ## How x402proxy Reverse Proxy Works
 Imagine you want to visit a website, but instead of talking to the website directly, you send your request to a helper website called x402proxy. 
-This helper stands in the middle between you and the website.
+x402proxy stands in the middle between you and the website.
 
 x402proxy charges users for access to web resources using the x402 protocol by Coinbase.
 
-It supports both Base and SKALE networks, enabling payments and access control across these blockchains.
+It supports both Base and SKALE networks, enabling payments across these blockchains.
+
+
 
 
 Here's what happens step by step:
@@ -46,16 +38,27 @@ Here's what happens step by step:
 5. **x402proxy sends the response to you:**  
    x402proxy takes the website's response and passes it back to you.
 
-**Why use x402proxy?**
 
-- It instantly adds x402 payments to existing websites and web APIs.
-- It is fully x402 compliant.
-- It is easy to deploy and configure.
-- It is a high performance C++ based implementation, supporting large number of concurrent connections.
-- It supports both Base and SKALE networks.
-- It supports flexible payment models and x402 options.
-- It provides detailed logging and monitoring.
-- It is open source and free to use.
+# Build instructions
+
+Install vcpkg
+
+```
+git clone https://github.com/microsoft/vcpkg.git
+cd vcpkg
+./bootstrap-vcpkg.sh
+``` 
+
+```
+./vcpkg install folly wangle proxygen
+```
+
+
+Run
+
+```
+cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=external/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_FEATURE_FLAGS=manifests 
+```
 
 
 
