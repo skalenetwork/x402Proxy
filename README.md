@@ -9,33 +9,32 @@
 - It provides detailed logging and monitoring.
 - It is open source and free to use.
 
-## How x402proxy Reverse Proxy Architecture Works
-Imagine you want to visit a website, but instead of talking to the website directly, you send your request to a helper website called x402proxy. 
-x402proxy stands in the middle between you and the website.
+## How the x402proxy Reverse Proxy Architecture Works
 
-x402proxy charges users for access to web resources using the x402 protocol by Coinbase.
+Think of x402proxy as a toll booth on the internet. Instead of connecting to a website directly, your request goes through x402proxy, which verifies payment before allowing access to the destination.  
 
-It supports both Base and SKALE networks, enabling payments across these blockchains.
+x402proxy uses the **x402 protocol by Coinbase** to charge for access to web resources. It supports payments on both **Base** and **SKALE** networks, making it compatible with multiple blockchains.  
 
+Here’s the process step by step:  
 
+1. **You send a request**  
+   You try to access a webpage or resource.  
 
+2. **x402proxy intercepts the request**  
+   Your request doesn’t go straight to the website. Instead, it first reaches x402proxy, which checks whether payment has been included. If not, x402proxy prompts you to pay before proceeding.  
 
-Here's what happens step by step:
+3. **Payment verification**  
+   Once payment is confirmed via the x402 protocol, x402proxy authorizes the request.  
 
-1. **You make a request:**  
-   You ask for a webpage or some information.
+4. **x402proxy forwards the request**  
+   The proxy relays your request to the actual website on your behalf.  
 
-2. **x402proxy receives your request:**  
-   Instead of going straight to the website, your request first goes to x402proxy. 
-   It checks if it comes with the right payment. If not, it will ask you to pay before proceeding.
+5. **The website responds**  
+   The destination website sends its response back to x402proxy.  
 
-3. **x402proxy forwards your request:**  
-   Once the payment is received, x402proxy takes your request and sends it to the real website on your behalf.
+6. **x402proxy delivers the response to you**  
+   Finally, x402proxy returns the website’s response, completing the paid transaction loop.  
 
-4. **The website responds:**  
-   The real website sends the information back to x402proxy.
-
-5. **x402proxy sends the response to you:**  
    x402proxy takes the website's response and passes it back to you.
 
 
