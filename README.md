@@ -13,7 +13,7 @@
 
 Think of x402proxy as a toll booth on the internet. Instead of connecting to a website directly, your request goes through x402proxy, which verifies payment before allowing access to the destination.  
 
-x402proxy uses the **x402 protocol by Coinbase** to charge for access to web resources. It supports payments on both **Base** and **SKALE** networks, making it compatible with multiple blockchains.  
+x402proxy uses the [**x402 protocol by Coinbase**](https://docs.cdp.coinbase.com/x402/docs/welcome) to charge for access to web resources. It supports payments on both **Base** and **SKALE** networks, making it compatible with multiple blockchains.  
 
 Here’s the process step by step:  
 
