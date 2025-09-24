@@ -20,7 +20,13 @@ cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=external/vcpkg/scripts/bui
 ```
 
 ## How x402proxy Reverse Proxy Works
-Imagine you want to visit a website, but instead of talking to the website directly, you send your request to a helper called x402proxy. This helper stands in the middle between you and the website.
+Imagine you want to visit a website, but instead of talking to the website directly, you send your request to a helper called x402proxy. 
+This helper stands in the middle between you and the website.
+
+x402proxy charges users for access to web resources using the x402 protocol by Coinbase.
+
+It supports both Base and SKALE networks, enabling payments and access control across these blockchains.
+
 
 Here's what happens step by step:
 
@@ -28,10 +34,11 @@ Here's what happens step by step:
    You ask for a webpage or some information.
 
 2. **x402proxy receives your request:**  
-   Instead of going straight to the website, your request first goes to x402proxy.
+   Instead of going straight to the website, your request first goes to x402proxy. 
+   It checks if it comes with the right payment. If not, it will ask you to pay before proceeding.
 
 3. **x402proxy forwards your request:**  
-   x402proxy takes your request and sends it to the real website on your behalf.
+   Once the payment is received, x402proxy takes your request and sends it to the real website on your behalf.
 
 4. **The website responds:**  
    The real website sends the information back to x402proxy.
@@ -40,8 +47,15 @@ Here's what happens step by step:
    x402proxy takes the website's response and passes it back to you.
 
 **Why use x402proxy?**
-- It can add security by hiding the real website from you.
-- It can filter or modify requests and responses.
-- It can help balance traffic if many people are visiting the website at once.
 
-In short, x402proxy is like a helpful middleman that manages communication between you and the website.
+- It instantly adds x402 payments to existing websites and web APIs.
+- It is fully x402 compliant.
+- It is easy to deploy and configure.
+- It is a high performance C++ based implementation, supporting large number of concurrent connections.
+- It supports both Base and SKALE networks.
+- It supports flexible payment models and x402 options.
+- It provides detailed logging and monitoring.
+- It is open source and free to use.
+
+
+
