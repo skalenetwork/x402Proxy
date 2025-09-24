@@ -9,7 +9,7 @@
 - It provides detailed logging and monitoring.
 - It is open source and free to use.
 
-## How x402proxy Reverse Proxy Works
+## How x402proxy Reverse Proxy Architecture Works
 Imagine you want to visit a website, but instead of talking to the website directly, you send your request to a helper website called x402proxy. 
 x402proxy stands in the middle between you and the website.
 
