@@ -1,4 +1,4 @@
-# x402Proxy
+# x402proxy
 
 Install vcpkg
 
