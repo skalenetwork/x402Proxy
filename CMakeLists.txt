@@ -6,12 +6,19 @@ if(POLICY CMP0167)
     cmake_policy(SET CMP0167 NEW)
 endif()
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# Gather all source files except test sources
+file(GLOB APP_SRC_FILES src/*.cpp)
+list(FILTER APP_SRC_FILES EXCLUDE REGEX "src/tests/.*")
 
-file(GLOB SRC_FILES src/*.cpp src/*.h)
+# Gather test source files
+file(GLOB TEST_SRC_FILES src/tests/*.cpp)
+
+# Gather all source files needed for tests (implementation + tests)
+set(TEST_ALL_SRC_FILES ${APP_SRC_FILES} ${TEST_SRC_FILES})
 
 # ---- Proxygen / Folly / Wangle ----
 find_package(folly    REQUIRED CONFIG)
@@ -20,12 +27,10 @@ find_package(Proxygen REQUIRED CONFIG)
 find_package(Boost REQUIRED CONFIG COMPONENTS unit_test_framework system thread)
 find_package(CURL  REQUIRED)
 
-
-
 # ---- App target ----
 add_executable(x402proxy
         main.cpp
-        ${SRC_FILES}
+        ${APP_SRC_FILES}
 )
 target_include_directories(x402proxy PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(x402proxy
@@ -48,10 +53,8 @@ include(CTest)
 if(BUILD_TESTING)
     enable_testing()
 
-
     add_executable(x402_boost_test
-            src/tests/X402Test.cpp
-            ${SRC_FILES}
+            ${TEST_ALL_SRC_FILES}
     )
     target_compile_features(x402_boost_test PRIVATE cxx_std_17)
     target_include_directories(x402_boost_test
@@ -81,4 +84,3 @@ if(BUILD_TESTING)
 
     add_test(NAME x402_boost_test COMMAND x402_boost_test)
 endif()
-
