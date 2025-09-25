@@ -1,0 +1,59 @@
+name: Build (vcpkg + CMake)
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build
+
+      - name: Bootstrap vcpkg
+        run: |
+          ./external/vcpkg/bootstrap-vcpkg.sh
+          echo "$PWD/external/vcpkg" >> "$GITHUB_PATH"
+
+      - name: Cache vcpkg artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/vcpkg
+            external/vcpkg/installed
+            external/vcpkg/downloads
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('**/vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
+      - name: Install vcpkg packages
+        env:
+          VCPKG_FEATURE_FLAGS: manifests
+        run: |
+          external/vcpkg/vcpkg install
+
+      - name: Configure (CMake)
+        env:
+          VCPKG_FEATURE_FLAGS: manifests
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_TOOLCHAIN_FILE=external/vcpkg/scripts/buildsystems/vcpkg.cmake \
+            -DVCPKG_FEATURE_FLAGS=manifests
+
+      - name: Build
+        run: cmake --build build --config Debug -j 2
+
+      # Optional: run tests if you have them
+      # - name: Test
+      #   run: ctest --test-dir build --output-on-failure
