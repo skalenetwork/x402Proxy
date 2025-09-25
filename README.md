@@ -43,27 +43,20 @@ Here’s the process step by step:
 Install vcpkg package manager
 
 ```bash
-git clone https://github.com/microsoft/vcpkg.git
-cd vcpkg
-./bootstrap-vcpkg.sh
-export PATH=$PATH:$PWD
 ``` 
 
-Clone project 
+Clone project, install and build dependencies
 
 ```
-git clone git@github.com:skalenetwork/x402proxy.git --recursive
+git clone --recursive git@github.com:skalenetwork/x402proxy.git 
+cd x402proxy/external/vcpkg
+./bootstrap-vcpkg.sh 
+export PATH=$PATH:$PWD 
+cd ../..
+external/vcpkg/vcpkg install
 ```
 
-Install dependencies
-
-```
-cd x402proxy
-./vcpkg install
-```
-
-
-Run
+Build the project
 
 ```
 cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=external/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_FEATURE_FLAGS=manifests 
