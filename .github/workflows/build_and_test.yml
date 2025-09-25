@@ -74,3 +74,12 @@ jobs:
             external/vcpkg/installed
             external/vcpkg/downloads
           key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
+
+      - name: Upload executables as artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: x402proxy-executables
+          path: |
+            build/x402proxy
+            build/x402_boost_test
