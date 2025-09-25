@@ -40,22 +40,26 @@ Here’s the process step by step:
 
 # Build instructions
 
+Install vcpkg package manager
+
+```bash
+git clone https://github.com/microsoft/vcpkg.git
+cd vcpkg
+./bootstrap-vcpkg.sh
+export PATH=$PATH:$PWD
+``` 
+
 Clone project 
 
 ```
 git clone git@github.com:skalenetwork/x402proxy.git --recursive
 ```
 
-Install vcpkg
+Install dependencies
 
 ```
-git clone https://github.com/microsoft/vcpkg.git
-cd vcpkg
-./bootstrap-vcpkg.sh
-``` 
-
-```
-./vcpkg install folly wangle proxygen
+cd x402proxy
+./vcpkg install
 ```
 
 
