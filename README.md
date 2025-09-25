@@ -40,11 +40,6 @@ Here’s the process step by step:
 
 # Build instructions
 
-Install vcpkg package manager
-
-```bash
-``` 
-
 Clone project, install and build dependencies
 
 ```
