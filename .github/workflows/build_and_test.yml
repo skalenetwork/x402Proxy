@@ -1,4 +1,4 @@
-name: Build (vcpkg + CMake)
+name: Build and test proxy
 
 on:
   push:
@@ -25,14 +25,16 @@ jobs:
           ./external/vcpkg/bootstrap-vcpkg.sh
           echo "$PWD/external/vcpkg" >> "$GITHUB_PATH"
 
-      - name: Cache vcpkg artifacts
-        uses: actions/cache@v4
+      # Restore vcpkg cache (keyed to manifests so it updates when deps change)
+      - name: Restore vcpkg cache
+        id: vcpkg-cache
+        uses: actions/cache/restore@v4
         with:
           path: |
             ~/.cache/vcpkg
             external/vcpkg/installed
             external/vcpkg/downloads
-          key: ${{ runner.os }}-vcpkg-${{ hashFiles('**/vcpkg.json') }}
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('**/vcpkg.json', '**/vcpkg-configuration.json', '**/vcpkg-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-vcpkg-
 
@@ -40,13 +42,14 @@ jobs:
         env:
           VCPKG_FEATURE_FLAGS: manifests
         run: |
-          external/vcpkg/vcpkg install
+          vcpkg install
 
       - name: Configure (CMake)
         env:
           VCPKG_FEATURE_FLAGS: manifests
         run: |
           cmake -S . -B build \
+            -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
             -DCMAKE_TOOLCHAIN_FILE=external/vcpkg/scripts/buildsystems/vcpkg.cmake \
             -DVCPKG_FEATURE_FLAGS=manifests
@@ -54,6 +57,18 @@ jobs:
       - name: Build
         run: cmake --build build --config Debug -j 2
 
+      # Save cache only if we didn't hit it (prevents save conflicts)
+      - name: Save vcpkg cache
+        if: steps.vcpkg-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/vcpkg
+            external/vcpkg/installed
+            external/vcpkg/downloads
+          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
+
       # Optional: run tests if you have them
       # - name: Test
       #   run: ctest --test-dir build --output-on-failure
+
