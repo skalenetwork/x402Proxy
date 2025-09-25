@@ -40,6 +40,12 @@ Here’s the process step by step:
 
 # Build instructions
 
+Clone project 
+
+```
+git clone git@github.com:skalenetwork/x402proxy.git --recursive
+```
+
 Install vcpkg
 
 ```
