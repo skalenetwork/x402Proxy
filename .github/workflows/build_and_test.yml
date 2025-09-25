@@ -61,6 +61,9 @@ jobs:
       - name: Build
         run: cmake --build build --config Debug -j 2
 
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
+
       # Save cache only if we didn't hit it (prevents save conflicts)
       - name: Save vcpkg cache
         if: steps.vcpkg-cache.outputs.cache-hit != 'true'
@@ -71,8 +74,3 @@ jobs:
             external/vcpkg/installed
             external/vcpkg/downloads
           key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
-
-      # Optional: run tests if you have them
-      # - name: Test
-      #   run: ctest --test-dir build --output-on-failure
-
