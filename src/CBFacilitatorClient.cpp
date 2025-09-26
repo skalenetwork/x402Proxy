@@ -40,6 +40,9 @@ std::string CBFacilitatorClient::joinUrl(const std::string& base, const std::str
     if (!b && !p) return base + "/" + path;
     return base + path;
 }
+
+const std::string USDC_SEPOLIA_ADDRESS = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
+
 const std::string VERIFY_PAYLOAD_EXAMPLE = R"JSON(
 {
     "x402Version": 1,
@@ -48,7 +51,7 @@ const std::string VERIFY_PAYLOAD_EXAMPLE = R"JSON(
         "scheme": "exact",
         "network": "base-sepolia",
         "payload": {
-            "signature": "0xdeadbeef...",
+            "signature": "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef1b",
             "authorization": {
                 "from": "0x1111111111111111111111111111111111111111",
                 "to": "0x2222222222222222222222222222222222222222",
@@ -68,7 +71,7 @@ const std::string VERIFY_PAYLOAD_EXAMPLE = R"JSON(
         "mimeType": "application/json",
         "payTo": "0x2222222222222222222222222222222222222222",
         "maxTimeoutSeconds": 10,
-        "asset": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+        "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
     }
 }
 )JSON";
