@@ -2,7 +2,7 @@
 #include "X402Handler.h"
 #include <folly/json.h>
 #include <curl/curl.h>
-#include "PaymentExamples.h"
+#include "examples/PaymentExamples.h"
 
 using namespace proxygen;
 

@@ -17,8 +17,8 @@
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
 
-#include "PaymentRequirements.h"
-#include "PaymentExamples.h"
+#include "../datastructures/PaymentRequirements.h"
+#include "../examples/PaymentExamples.h"
 
 
 const std::string BIND_IP = "0.0.0.0";
