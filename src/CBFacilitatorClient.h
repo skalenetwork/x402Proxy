@@ -13,7 +13,7 @@
 class CBFacilitatorClient {
 public:
     explicit CBFacilitatorClient(
-        std::string base_url = "https://x402.org/facilitator",
+        std::string base_url = "https://x402.org/facilitator/",
         std::string auth = "", // Optional Bearer token if needed
         long connect_timeout_ms = 5000,
         long total_timeout_ms   = 15000);

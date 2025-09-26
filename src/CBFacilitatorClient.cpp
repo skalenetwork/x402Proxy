@@ -40,6 +40,42 @@ std::string CBFacilitatorClient::joinUrl(const std::string& base, const std::str
     if (!b && !p) return base + "/" + path;
     return base + path;
 }
+const std::string VERIFY_PAYLOAD_EXAMPLE = R"JSON(
+{
+    "x402Version": 1,
+    "paymentPayload": {
+        "x402Version": 1,
+        "scheme": "exact",
+        "network": "base-sepolia",
+        "payload": {
+            "signature": "0xdeadbeef...",
+            "authorization": {
+                "from": "0x1111111111111111111111111111111111111111",
+                "to": "0x2222222222222222222222222222222222222222",
+                "value": "1000",
+                "validAfter": "1716150000",
+                "validBefore": "1716153600",
+                "nonce": "0x1234567890abcdef"
+            }
+        }
+    },
+    "paymentRequirements": {
+        "scheme": "exact",
+        "network": "base-sepolia",
+        "maxAmountRequired": "1000",
+        "resource": "https://api.example.com/premium/data",
+        "description": "Test API data",
+        "mimeType": "application/json",
+        "payTo": "0x2222222222222222222222222222222222222222",
+        "maxTimeoutSeconds": 10,
+        "asset": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+    }
+}
+)JSON";
+
+
+
+
 
 nlohmann::json CBFacilitatorClient::verify(const nlohmann::json& paymentInstruction,
                                            const nlohmann::json& paymentPayload) const {
@@ -59,7 +95,9 @@ nlohmann::json CBFacilitatorClient::settle(const nlohmann::json& paymentInstruct
 
 nlohmann::json CBFacilitatorClient::postJson(const std::string& path, const nlohmann::json& body) const {
     const std::string url = joinUrl(base_url_, path);
-    const std::string payload = body.dump();
+    std::string payload = body.dump();
+
+    payload = VERIFY_PAYLOAD_EXAMPLE;
 
     CURL* curl = curl_easy_init();
     if (!curl) throw std::runtime_error("Failed to init CURL easy handle");
