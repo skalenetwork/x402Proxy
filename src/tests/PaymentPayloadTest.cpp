@@ -1,32 +1,17 @@
+#include "PaymentPayload.h"
+#include "PaymentExamples.h"
+
 #include <boost/test/unit_test.hpp>
 #include <string>
 #include "nlohmann/json.hpp"
-#include "PaymentPayload.h"
+
 using json = nlohmann::json;
 
 BOOST_AUTO_TEST_CASE(deserialize_payment_payload) {
-    const std::string json_string = R"(
-{
-    "paymentPayload": {
-        "x402Version": 1,
-        "scheme": "exact",
-        "network": "base-sepolia",
-        "payload": {
-            "signature": "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef1b",
-            "authorization": {
-                "from": "0x1111111111111111111111111111111111111111",
-                "to": "0x2222222222222222222222222222222222222222",
-                "value": "1000",
-                "validAfter": "1716150000",
-                "validBefore": "1716153600",
-                "nonce": "0x1234567890abcdef"
-            }
-        }
-    }
-}
-)";
 
-    json j_data = json::parse(json_string);
+
+
+    json j_data = json::parse(EXACT_UCDC_PAYMENT_PAYLOAD_CB_SEPOLIA);
     json j_payload = j_data["paymentPayload"];
     PaymentPayload p_payload = j_payload.get<PaymentPayload>();
 
@@ -70,4 +55,3 @@ BOOST_AUTO_TEST_CASE(serialize_payment_payload) {
     BOOST_TEST(j_output["paymentPayload"]["payload"]["authorization"]["nonce"] == "0xfee1deadbeef");
 }
 
-// All fields from the spec are checked in the test cases.

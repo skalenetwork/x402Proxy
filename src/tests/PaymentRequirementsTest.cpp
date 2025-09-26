@@ -1,29 +1,14 @@
 #include "PaymentRequirements.h"
+#include "PaymentExamples.h"
 #include "nlohmann/json.hpp"
 #include <boost/test/unit_test.hpp>
 
 using json = nlohmann::json;
 
 BOOST_AUTO_TEST_CASE(deserialize_payment_requirements) {
-    const std::string json_string = R"(
-{
-        "scheme": "exact",
-        "network": "base-sepolia",
-        "maxAmountRequired": "1000",
-        "resource": "https://api.example.com/premium/data",
-        "description": "Test API data",
-        "mimeType": "application/json",
-        "payTo": "0x2222222222222222222222222222222222222222",
-        "maxTimeoutSeconds": 10,
-        "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
-        "extra": {
-            "name": "USDC",
-            "version": "2"
-        }
-}
-)";
 
-    json j_data = json::parse(json_string);
+
+    json j_data = json::parse(EXACT_UCDC_PAYMENT_REQ_CB_SEPOLIA);
     PaymentRequirements requirements = j_data.get<PaymentRequirements>();
 
     BOOST_TEST(requirements.scheme == "exact");

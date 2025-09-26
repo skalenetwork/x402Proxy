@@ -2,6 +2,7 @@
 #include "X402Handler.h"
 #include <folly/json.h>
 #include <curl/curl.h>
+#include "PaymentExamples.h"
 
 using namespace proxygen;
 
@@ -9,18 +10,8 @@ namespace {
     // Demo payment requirements JSON (normally dynamic / per-request).
     folly::dynamic paymentRequirements() {
         folly::dynamic req = folly::dynamic::object;
-        req["version"] = 1;
-        req["scheme"] = "exact"; // client must pay exact amount
-        req["network"] = "base-mainnet"; // demo value
-        req["asset"] = folly::dynamic::object
-                ("symbol", "USDC")
-                ("chainId", 8453)
-                ("decimals", 6);
-        req["amount"] = "0.25"; // 0.25 USDC
-        req["payTo"] = "0x000000000000000000000000000000000000dead"; // demo addr
-        req["nonce"] = "demo-nonce-123"; // include in client payload to prevent replay
-        req["expiresAt"] = "2099-01-01T00:00:00Z"; // demo
-        req["description"] = "Pay-per-call demo: access the /paid resource.";
+        auto paymentRequirements = EXACT_UCDC_PAYMENT_REQ_CB_SEPOLIA;
+        req = folly::parseJson(paymentRequirements);
         return req;
     }
 }

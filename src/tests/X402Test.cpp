@@ -17,6 +17,9 @@
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
 
+#include "PaymentRequirements.h"
+#include "PaymentExamples.h"
+
 
 const std::string BIND_IP = "0.0.0.0";
 const std::string CONNECT_HOST = "localhost";
@@ -70,17 +73,10 @@ BOOST_FIXTURE_TEST_SUITE(X402Suite, X402ServerFixture)
         BOOST_TEST(statusLine == "HTTP/1.1 402 Payment Required");
         BOOST_TEST(headersMap["Content-Type"] == "application/json");
 
-        nlohmann::json bodyJson;
 
-        try {
-            bodyJson = nlohmann::json::parse(resp.body, nullptr, true);
-        } catch (const nlohmann::json::parse_error &e) {
-            BOOST_FAIL("JSON parsing failed: " + std::string(e.what()));
-        }
-
-        // Basic body sanity checks
-        BOOST_TEST(bodyJson["scheme"] == "exact");
-        BOOST_TEST(bodyJson["asset"]["symbol"] == "USDC");
+        auto req = nlohmann::json::parse(resp.body).get<PaymentRequirements>();
+        auto expected = nlohmann::json::parse(EXACT_UCDC_PAYMENT_REQ_CB_SEPOLIA).get<PaymentRequirements>();
+        BOOST_TEST(req == expected);
     }
 
     BOOST_AUTO_TEST_CASE(Returns200WhenPaymentHeaderPresent) {
