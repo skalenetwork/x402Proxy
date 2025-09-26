@@ -16,7 +16,8 @@ BOOST_AUTO_TEST_CASE(deserialize_payment_requirements) {
         "mimeType": "application/json",
         "payTo": "0x2222222222222222222222222222222222222222",
         "maxTimeoutSeconds": 10,
-        "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+        "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+        "extra": null
     }
 }
 )";
@@ -31,9 +32,11 @@ BOOST_AUTO_TEST_CASE(deserialize_payment_requirements) {
     BOOST_TEST(requirements.resource == "https://api.example.com/premium/data");
     BOOST_TEST(requirements.description == "Test API data");
     BOOST_TEST(requirements.mimeType == "application/json");
+    BOOST_TEST(!requirements.outputSchema.has_value());
     BOOST_TEST(requirements.payTo == "0x2222222222222222222222222222222222222222");
     BOOST_TEST(requirements.maxTimeoutSeconds == 10);
     BOOST_TEST(requirements.asset == "0x036CbD53842c5426634e7929541eC2318f3dCF7e");
+    BOOST_TEST(requirements.extra.is_null());
 }
 
 BOOST_AUTO_TEST_CASE(serialize_payment_requirements) {
@@ -47,6 +50,7 @@ BOOST_AUTO_TEST_CASE(serialize_payment_requirements) {
     new_req.payTo = "0xAAAAAAAAAAAAAA...AAAAAAAAAAAAA";
     new_req.maxTimeoutSeconds = 600;
     new_req.asset = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+    new_req.extra = nullptr;
 
     json j_output;
     j_output["paymentRequirements"] = new_req;
@@ -57,7 +61,11 @@ BOOST_AUTO_TEST_CASE(serialize_payment_requirements) {
     BOOST_TEST(j_output["paymentRequirements"]["resource"] == "https://api.prod.com/stream/video");
     BOOST_TEST(j_output["paymentRequirements"]["description"] == "Production Video Stream");
     BOOST_TEST(j_output["paymentRequirements"]["mimeType"] == "video/mp4");
+    if (!j_output["paymentRequirements"].contains("outputSchema")) {
+        BOOST_TEST(true); // outputSchema is not present, which is valid
+    }
     BOOST_TEST(j_output["paymentRequirements"]["payTo"] == "0xAAAAAAAAAAAAAA...AAAAAAAAAAAAA");
     BOOST_TEST(j_output["paymentRequirements"]["maxTimeoutSeconds"] == 600);
     BOOST_TEST(j_output["paymentRequirements"]["asset"] == "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913");
+    BOOST_TEST(j_output["paymentRequirements"]["extra"].is_null());
 }

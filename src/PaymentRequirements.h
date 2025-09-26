@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <optional>
 #include "nlohmann/json.hpp"
 
 /**
@@ -12,26 +13,27 @@
  * exceed standard 64-bit integer limits.
  */
 
+/**
+ * @brief Represents the full x402 Payment Requirements object,
+ * including optional fields like 'outputSchema' and 'extra'.
+ */
+
+using json = nlohmann::json;
+
 struct PaymentRequirements {
     std::string scheme;
     std::string network;
-    std::string maxAmountRequired;
+    std::string maxAmountRequired; // uint256 as string
     std::string resource;
     std::string description;
     std::string mimeType;
+    std::optional<json> outputSchema; // Now optional
     std::string payTo;
-    int maxTimeoutSeconds; // Could also be uint32_t or similar, but int is sufficient for typical values
+    int maxTimeoutSeconds;         // number (seconds)
     std::string asset;
+    json extra;                    // New: object | null
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PaymentRequirements,
-    scheme,
-    network,
-    maxAmountRequired,
-    resource,
-    description,
-    mimeType,
-    payTo,
-    maxTimeoutSeconds,
-    asset
-)
+// Add these declarations for ADL:
+void to_json(json& j, const PaymentRequirements& p);
+void from_json(const json& j, PaymentRequirements& p);
