@@ -5,11 +5,16 @@
 
 /// Minimal client for Coinbase x402 facilitator (REST JSON API).
 /// Depends on: libcurl, nlohmann::json
+///
+///
+//        std::string cdp_url = "https://api.cdp.coinbase.com/platform/v2/x402",
+//        std::string cdpAuth = "Bearer XYZ", // Replace with real token if needed
+///
 class CBFacilitatorClient {
 public:
     explicit CBFacilitatorClient(
-        std::string base_url = "https://api.coinbase.com/x402/facilitator",
-        std::string auth = "",
+        std::string base_url = "https://x402.org/facilitator",
+        std::string auth = "", // Optional Bearer token if needed
         long connect_timeout_ms = 5000,
         long total_timeout_ms   = 15000);
 

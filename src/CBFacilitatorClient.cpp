@@ -108,8 +108,22 @@ nlohmann::json CBFacilitatorClient::postJson(const std::string& path, const nloh
     if (res != CURLE_OK) {
         throw std::runtime_error(std::string("CURL error: ") + curl_easy_strerror(res));
     }
+
+
     if (http_code < 200 || http_code >= 300) {
-        throw std::runtime_error("HTTP " + std::to_string(http_code) + " error at " + url + ": " + response_data);
+        std::string error_explanation;
+        switch (http_code) {
+        case 400: error_explanation = "Bad Request"; break;
+        case 401: error_explanation = "Unauthorized"; break;
+        case 403: error_explanation = "Forbidden"; break;
+        case 404: error_explanation = "Not Found"; break;
+        case 500: error_explanation = "Internal Server Error"; break;
+        case 502: error_explanation = "Bad Gateway"; break;
+        case 503: error_explanation = "Service Unavailable"; break;
+        default:  error_explanation = "Unknown Error"; break;
+        }
+        throw std::runtime_error("HTTP " + std::to_string(http_code) + " (" + error_explanation + ") error at "
+            + url + ": " + response_data + "\n | Payload: " + payload);
     }
 
     if (response_data.empty()) {
