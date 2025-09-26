@@ -26,7 +26,7 @@ static nlohmann::json makePayload() {
         {"validAfter",  1699999999},
         {"validBefore", 1999999999},
         // Dummy signature (not valid). Facilitator will likely reject this payload.
-        {"signature",   "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+        //{"signature",   "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
     };
 }
 

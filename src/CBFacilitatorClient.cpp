@@ -104,23 +104,29 @@ nlohmann::json CBFacilitatorClient::postJson(const std::string& path, const nloh
     if (headers) curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
 
+
     if (res != CURLE_OK) {
         throw std::runtime_error(std::string("CURL error: ") + curl_easy_strerror(res));
+    }
+    if (http_code < 200 || http_code >= 300) {
+        throw std::runtime_error("HTTP " + std::to_string(http_code) + " error at " + url + ": " + response_data);
+    }
+
+    if (response_data.empty()) {
+        throw std::runtime_error("HTTP server at " + url + " returned empty response (HTTP " +
+            std::to_string(http_code) + ")");
     }
 
     // Parse response
     nlohmann::json j;
     try {
-        j = nlohmann::json::parse(response_data.empty() ? "null" : response_data);
+        j = nlohmann::json::parse(response_data);
     } catch (const std::exception& e) {
         throw std::runtime_error("Failed to parse JSON (HTTP " + std::to_string(http_code) +
-                                 "): " + std::string(e.what()) + " | Raw: " + response_data);
+                                 ") from " + url + ": " + std::string(e.what()) + " | Raw: " + response_data);
     }
 
-    // Non-2xx => throw with server-provided JSON
-    if (http_code < 200 || http_code >= 300) {
-        throw std::runtime_error("HTTP " + std::to_string(http_code) + " error: " + j.dump());
-    }
+
 
     return j;
 }
