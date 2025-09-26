@@ -69,3 +69,5 @@ BOOST_AUTO_TEST_CASE(serialize_payment_payload) {
     BOOST_TEST(j_output["paymentPayload"]["payload"]["authorization"]["validBefore"] == "1727283600");
     BOOST_TEST(j_output["paymentPayload"]["payload"]["authorization"]["nonce"] == "0xfee1deadbeef");
 }
+
+// All fields from the spec are checked in the test cases.

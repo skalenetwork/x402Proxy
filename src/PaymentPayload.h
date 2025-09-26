@@ -38,6 +38,14 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Payload, signature, authorization)
 
 /**
  * @brief Represents the full payment payload structure.
+ *
+ * PaymentPayload matches the spec:
+ * {
+ *   x402Version: number;
+ *   scheme: string;
+ *   network: string;
+ *   payload: <scheme dependent>;
+ * }
  */
 struct PaymentPayload {
     int x402Version;
